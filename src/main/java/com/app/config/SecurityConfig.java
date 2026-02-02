@@ -1,5 +1,6 @@
 package com.app.config;
 
+import com.app.service.UserDetailServiceImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -14,6 +15,8 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
@@ -64,26 +67,38 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationProvider authenticationProvider(){
-        return new DaoAuthenticationProvider(userDetailsService());
+    public AuthenticationProvider authenticationProvider(UserDetailServiceImpl userDetailService){
+        DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider(userDetailService);
+        daoAuthenticationProvider.setPasswordEncoder(passwordEncoder());
+        return daoAuthenticationProvider;
     }
 
     @Bean
-    public UserDetailsService userDetailsService(){
-       List<UserDetails> users = new ArrayList<UserDetails>();
-       users.add(User.withUsername("manolo")
-               .password("{noop}123456")
-               .roles("ADMIN")
-               .authorities("READ","CREATE")
-               .build());
-
-        users.add(User.withUsername("sandra")
-                .password("{noop}123456")
-                .roles("USER")
-                .authorities("READ")
-                .build());
-
-
-        return new InMemoryUserDetailsManager(users);
+    public PasswordEncoder passwordEncoder(){
+          return new BCryptPasswordEncoder();
     }
+
+//    @Bean
+//    public UserDetailsService userDetailsService(){
+//       List<UserDetails> users = new ArrayList<UserDetails>();
+//       users.add(User.withUsername("manolo")
+//               .password("{noop}123456")
+//               .roles("ADMIN")
+//               .authorities("READ","CREATE")
+//               .build());
+//
+//        users.add(User.withUsername("sandra")
+//                .password("{noop}123456")
+//                .roles("USER")
+//                .authorities("READ")
+//                .build());
+//
+//
+//        return new InMemoryUserDetailsManager(users);
+//    }
+
+// pequeño workaround para encriptar las contraseñas por primera vez, solo en este caso de desarrollo normalmente no se deben de encriptar asi
+//    public static void main(String[] args) {
+//        System.out.println(new BCryptPasswordEncoder().encode("123456"));
+//    }
 }
